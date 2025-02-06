@@ -1,0 +1,44 @@
+services:
+  frontend:
+    build:
+      context: ./webproj_front
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./webproj_front:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./webproj_backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./webproj_backend:/app
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=storydb
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=storydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 
