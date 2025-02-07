@@ -25,10 +25,14 @@
                 <div class="continue-options">
                     <h4>Continue Options:</h4>
                     <ul>
-                        <li v-for="option in opener.continueOptions" :key="option.id">
+                        <div v-for="option in opener.continue_options" :key="option.id">
                             {{ option.text }}
-                        </li>
-                    </ul>
+                            <span class="weight">[Weight: {{ option.weight }}]</span><br>
+                            <button @click="deleteOption(opener.id, option.id)" class="btn-danger btm-sm">
+                                Delete
+                            </button>
+                        </div>
+                    </ul><br>
                     <button 
                         @click="showAddOptionForm(opener)" 
                         class="btn-secondary"
@@ -95,6 +99,20 @@ const deleteOpener = async (id: string) => {
     if (confirm('Are you sure you want to delete this opener?')) {
         await dialogStore.deleteOpener(id)
     }
+}
+
+const deleteOption = async (openerId: string, optionId: string) => {
+    if (confirm('Are you sure you want to delete this option?')) {
+        try {
+            await dialogStore.deleteContinueOption({
+                openerId,
+                optionId
+            })
+            await dialogStore.fetchOpeners()
+        } catch (error) {
+            console.error('Error deleting option:', error)
+        }
+    } 
 }
 
 const handleOpenerCreated = () => {
@@ -177,5 +195,40 @@ const handleOptionCreated = () => {
 .btn-danger {
     background: #f44336;
     color: white;
+}
+
+.option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.option-item:last-child {
+    border-bottom: none;
+}
+
+.option-text {
+    flex: 1;
+}
+
+.option-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weight-badge {
+    font-size: 0.9em;
+    color: #666;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.9em;
 }
 </style>

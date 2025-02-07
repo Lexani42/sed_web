@@ -26,6 +26,12 @@ interface CreateStoryPayload {
   format: string
 }
 
+interface DeleteContentPayload {
+  storyId: string
+  languageCode: string
+  format: string
+}
+
 export const useStoryStore = defineStore('stories', {
   state: () => ({
     stories: [] as Story[],
@@ -113,8 +119,14 @@ export const useStoryStore = defineStore('stories', {
       }
     },
 
-    async addLanguage({ storyId, formData }: { storyId: string; formData: FormData }) {
+    async addLanguage({ storyId, formData }: { storyId: string, formData: FormData }) {
       try {
+        console.log('Adding language with data:', {
+          storyId,
+          language: formData.get('language'),
+          format: formData.get('format')
+        })
+
         const response = await api.post(
           `/stories/${storyId}/languages`,
           formData,
@@ -124,11 +136,14 @@ export const useStoryStore = defineStore('stories', {
             }
           }
         )
+        console.log('Server response:', response.data)
+        
         if (this.currentStory?.id === storyId) {
-          this.currentStory = response.data
+          await this.fetchStory(storyId)
         }
         return response.data
       } catch (err) {
+        console.error('Failed to add language:', err.response?.data || err)
         this.error = 'Failed to add language'
         throw err
       }
@@ -163,19 +178,10 @@ export const useStoryStore = defineStore('stories', {
       }
     },
 
-    async deleteLanguage({ 
-      storyId, 
-      languageCode 
-    }: { 
-      storyId: string
-      languageCode: string 
-    }) {
+    async deleteLanguage({ storyId, languageCode }: { storyId: string, languageCode: string }) {
       try {
-        const response = await api.delete(`/stories/${storyId}/languages/${languageCode}`)
-        if (this.currentStory?.id === storyId) {
-          this.currentStory = response.data
-        }
-        return response.data
+        await api.delete(`/stories/${storyId}/languages/${languageCode}`)
+        await this.fetchStories() // Refresh the stories list
       } catch (err) {
         this.error = 'Failed to delete language'
         throw err
@@ -230,6 +236,20 @@ export const useStoryStore = defineStore('stories', {
         return response.data
       } catch (err) {
         this.error = 'Failed to delete format'
+        throw err
+      }
+    },
+
+    async deleteContent({ storyId, languageCode, format }: DeleteContentPayload) {
+      try {
+        const formatId = format === 'text' ? 1 : 2
+        const response = await api.delete(
+          `/stories/${storyId}/languages/${languageCode}/formats/${formatId}`
+        )
+        return response.data
+      } catch (err) {
+        console.error('Failed to delete content:', err.response?.data || err)
+        this.error = 'Failed to delete content'
         throw err
       }
     }

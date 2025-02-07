@@ -6,18 +6,18 @@ from app.api import deps
 
 router = APIRouter()
 
-@router.get("/openers", response_model=List[schemas.Opener])
+@router.get("/", response_model=List[schemas.Opener])
 def get_openers(db: Session = Depends(deps.get_db)):
     return db.query(models.Opener).all()
 
-@router.get("/openers/{opener_id}", response_model=schemas.Opener)
+@router.get("/{opener_id}", response_model=schemas.Opener)
 def get_opener(opener_id: int, db: Session = Depends(deps.get_db)):
     opener = db.query(models.Opener).filter(models.Opener.id == opener_id).first()
     if not opener:
         raise HTTPException(status_code=404, detail="Opener not found")
     return opener
 
-@router.post("/openers", response_model=schemas.Opener)
+@router.post("/", response_model=schemas.Opener)
 def create_opener(opener: schemas.OpenerCreate, db: Session = Depends(deps.get_db)):
     db_opener = models.Opener(**opener.model_dump())
     db.add(db_opener)
@@ -25,7 +25,7 @@ def create_opener(opener: schemas.OpenerCreate, db: Session = Depends(deps.get_d
     db.refresh(db_opener)
     return db_opener
 
-@router.put("/openers/{opener_id}", response_model=schemas.Opener)
+@router.put("/{opener_id}", response_model=schemas.Opener)
 def update_opener(
     opener_id: int, 
     opener: schemas.OpenerCreate, 
@@ -42,7 +42,7 @@ def update_opener(
     db.refresh(db_opener)
     return db_opener
 
-@router.delete("/openers/{opener_id}")
+@router.delete("/{opener_id}")
 def delete_opener(opener_id: int, db: Session = Depends(deps.get_db)):
     db_opener = db.query(models.Opener).filter(models.Opener.id == opener_id).first()
     if not db_opener:
@@ -52,7 +52,7 @@ def delete_opener(opener_id: int, db: Session = Depends(deps.get_db)):
     db.commit()
     return {"ok": True}
 
-@router.post("/openers/{opener_id}/options", response_model=schemas.ContinueOption)
+@router.post("/{opener_id}/options", response_model=schemas.ContinueOption)
 def create_continue_option(
     opener_id: int,
     option: schemas.ContinueOptionCreate,
@@ -68,7 +68,7 @@ def create_continue_option(
     db.refresh(db_option)
     return db_option
 
-@router.delete("/openers/{opener_id}/options/{option_id}")
+@router.delete("/{opener_id}/options/{option_id}")
 def delete_continue_option(
     opener_id: int,
     option_id: int,

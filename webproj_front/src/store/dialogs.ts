@@ -15,6 +15,11 @@ interface ContinueOption {
   opener_id: string
 }
 
+interface DeleteContinueOptionPayload {
+  openerId: string
+  optionId: string
+}
+
 export const useDialogStore = defineStore('dialogs', {
   state: () => ({
     openers: [] as Opener[],
@@ -81,6 +86,18 @@ export const useDialogStore = defineStore('dialogs', {
       } catch (err) {
         this.error = 'Failed to add continue option'
         throw err
+      }
+    },
+
+    async deleteContinueOption(payload: DeleteContinueOptionPayload) {
+      this.loading = true
+      try {
+        await api.delete(`/openers/${payload.openerId}/options/${payload.optionId}`)
+      } catch (err) {
+        this.error = 'Failed to delete continue option'
+        throw err
+      } finally {
+        this.loading = false
       }
     }
   }

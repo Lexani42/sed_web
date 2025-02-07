@@ -28,9 +28,15 @@ class LanguageBase(BaseModel):
 class LanguageCreate(LanguageBase):
     pass
 
-class Language(LanguageBase):
+class Language(BaseModel):
     id: int
-    story_id: int
+    code: str
+    contents: List[Content]  # Keep as list in the model
+    
+    # Add a computed property for formatted contents
+    @property
+    def formatted_contents(self) -> Dict[str, str]:
+        return {str(content.format_id): content.content for content in self.contents}
 
     class Config:
         from_attributes = True
@@ -48,7 +54,7 @@ class StoryUpdate(StoryBase):
 
 class Story(StoryBase):
     id: int
-    languages: List[Language] = []
+    languages: List[Language]
     formats: List[Format] = []
 
     class Config:

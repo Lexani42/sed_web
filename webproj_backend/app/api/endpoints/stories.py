@@ -8,7 +8,8 @@ router = APIRouter()
 
 @router.get("/", response_model=List[schemas.Story])
 def get_stories(db: Session = Depends(deps.get_db)):
-    return db.query(models.Story).all()
+    stories = db.query(models.Story).all()
+    return stories
 
 @router.get("/{story_id}", response_model=schemas.Story)
 def get_story(story_id: int, db: Session = Depends(deps.get_db)):
@@ -87,28 +88,41 @@ async def add_language(
     audio_file: UploadFile = File(None),
     db: Session = Depends(deps.get_db)
 ):
+    print(f"Adding language {language} with format {format} to story {story_id}")
+    
     db_story = db.query(models.Story).filter(models.Story.id == story_id).first()
     if not db_story:
         raise HTTPException(status_code=404, detail="Story not found")
     
-    # Create language if it doesn't exist for this story
+    # Get or create format first
+    db_format = db.query(models.Format).filter(models.Format.type == format).first()
+    if not db_format:
+        db_format = models.Format(type=format)
+        db.add(db_format)
+        db.commit()
+    
+    # Check if language exists and if it has this format
     db_language = db.query(models.Language).filter(
         models.Language.story_id == story_id,
         models.Language.code == language
     ).first()
     
     if db_language:
-        raise HTTPException(status_code=400, detail="Language already exists for this story")
-    
-    db_language = models.Language(code=language, story_id=story_id)
-    db.add(db_language)
-    db.commit()
-    
-    # Get or create format
-    db_format = db.query(models.Format).filter(models.Format.type == format).first()
-    if not db_format:
-        db_format = models.Format(type=format)
-        db.add(db_format)
+        # Check if this format already exists for this language
+        existing_content = db.query(models.Content).filter(
+            models.Content.language_id == db_language.id,
+            models.Content.format_id == db_format.id
+        ).first()
+        
+        if existing_content:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Format {format} already exists for language {language}"
+            )
+    else:
+        # Create new language if it doesn't exist
+        db_language = models.Language(code=language, story_id=story_id)
+        db.add(db_language)
         db.commit()
     
     # Add format to story if not already present
@@ -151,3 +165,50 @@ def delete_language(
     db.commit()
     
     return {"ok": True}
+
+@router.delete("/{story_id}/languages/{language_code}/formats/{format_id}")
+def delete_language_format(
+    story_id: int,
+    language_code: str,
+    format_id: int,
+    db: Session = Depends(deps.get_db)
+):
+    # Find the language
+    db_language = db.query(models.Language).filter(
+        models.Language.story_id == story_id,
+        models.Language.code == language_code
+    ).first()
+    
+    if not db_language:
+        raise HTTPException(status_code=404, detail="Language not found")
+    
+    # Find and delete the content with specified format
+    db_content = db.query(models.Content).filter(
+        models.Content.language_id == db_language.id,
+        models.Content.format_id == format_id
+    ).first()
+    
+    if not db_content:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Format {format_id} not found for language {language_code}"
+        )
+    
+    # Delete the content
+    db.delete(db_content)
+    
+    # Check if this was the last content for this language
+    remaining_contents = db.query(models.Content).filter(
+        models.Content.language_id == db_language.id
+    ).count()
+    
+    # If no contents left, delete the language
+    if remaining_contents == 0:
+        db.delete(db_language)
+    
+    db.commit()
+    
+    # Get updated story
+    db_story = db.query(models.Story).filter(models.Story.id == story_id).first()
+    db.refresh(db_story)
+    return db_story

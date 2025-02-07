@@ -4,7 +4,7 @@ export interface Opener {
   id: string
   text: string
   context: string
-  continueOptions: ContinueOption[]
+  continue_options: ContinueOption[]
 }
 
 export interface ContinueOption {
