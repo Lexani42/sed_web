@@ -76,7 +76,7 @@ const profileStore = useProfileStore()
 const showCreateForm = ref(false)
 const selectedProfile = ref(null)
 
-const { profiles, loading, error } = storeToRefs(profileStore)
+const { sortedProfiles: profiles, loading, error } = storeToRefs(profileStore)
 
 onMounted(async () => {
   await profileStore.fetchProfiles()

@@ -20,7 +20,7 @@ def ensure_avatar_dir():
 
 @router.get("/", response_model=List[schemas.Profile])
 def get_profiles(db: Session = Depends(deps.get_db)):
-    return db.query(models.Profile).all()
+    return db.query(models.Profile).order_by(models.Profile.id.desc()).all()
 
 @router.get("/{profile_id}", response_model=schemas.Profile)
 def get_profile(profile_id: int, db: Session = Depends(deps.get_db)):

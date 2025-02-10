@@ -34,6 +34,12 @@ export const useProfileStore = defineStore('profiles', {
     error: null as string | null
   }),
 
+  getters: {
+    sortedProfiles: (state) => {
+      return [...state.profiles].sort((a, b) => Number(b.id) - Number(a.id))
+    }
+  },
+
   actions: {
     async fetchProfiles() {
       this.loading = true
