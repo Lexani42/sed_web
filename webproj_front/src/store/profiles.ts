@@ -132,13 +132,27 @@ export const useProfileStore = defineStore('profiles', {
     // Note management
     async addNote({ profileId, key, value }: { profileId: string; key: string; value: string }) {
       try {
-        const response = await api.post(`/profiles/${profileId}/notes`, { key, value })
+        const trimmedKey = key.trim()
+        const trimmedValue = value.trim()
+        
+        if (!trimmedKey || !trimmedValue) {
+          throw new Error('Key and value cannot be empty')
+        }
+
+        const response = await api.post(`/profiles/${profileId}/notes`, {
+          key: trimmedKey,
+          value: trimmedValue
+        })
+        
         if (this.currentProfile?.id === profileId) {
-          this.currentProfile.notes.push(response.data)
+          this.currentProfile = {
+            ...this.currentProfile,
+            notes: [...this.currentProfile.notes, response.data]
+          }
         }
         return response.data
       } catch (err) {
-        this.error = 'Failed to add note'
+        this.error = err.message || 'Failed to add note'
         throw err
       }
     },

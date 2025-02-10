@@ -42,28 +42,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps } from 'vue'
+import { computed, ref } from 'vue'
 import { useProfileStore } from '../../store/profiles'
 
-const props = defineProps({
-  profileId: {
-    type: String,
-    required: true
-  },
-  hobbies: {
-    type: Array,
-    default: () => []
-  }
-})
-
 const profileStore = useProfileStore()
+// Remove the hobbies prop if you’re not using it from parent:
+// const props = defineProps({ profileId: { type: String, required: true } })
+
+// Create a computed property that derives hobbies from the store
+const hobbies = computed(() => profileStore.currentProfile?.hobbies || [])
+
 const showAddForm = ref(false)
 const newHobby = ref('')
 
 const handleSubmit = async () => {
   try {
     await profileStore.addHobby({
-      profileId: props.profileId,
+      profileId: profileStore.currentProfile?.id || '', // or use props.profileId if needed
       name: newHobby.value
     })
     newHobby.value = ''
@@ -77,7 +72,7 @@ const deleteHobby = async (hobbyId: string) => {
   if (confirm('Are you sure you want to delete this hobby?')) {
     try {
       await profileStore.deleteHobby({
-        profileId: props.profileId,
+        profileId: profileStore.currentProfile?.id || '',
         hobbyId
       })
     } catch (error) {

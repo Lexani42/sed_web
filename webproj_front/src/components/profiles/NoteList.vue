@@ -66,21 +66,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps } from 'vue'
+import { ref, computed } from 'vue'
 import { useProfileStore } from '../../store/profiles'
 
-const props = defineProps({
-  profileId: {
-    type: String,
-    required: true
-  },
-  notes: {
-    type: Array,
-    default: () => []
-  }
-})
+// Remove the notes prop if you don't really need it from the parent:
+// const props = defineProps({
+//   profileId: { type: String, required: true }
+// })
 
 const profileStore = useProfileStore()
+
+// Create a computed property that tracks the notes from the store
+const notes = computed(() => profileStore.currentProfile?.notes || [])
+
 const showAddForm = ref(false)
 const editingNote = ref(null)
 const form = ref({
@@ -109,13 +107,13 @@ const handleSubmit = async () => {
   try {
     if (editingNote.value) {
       await profileStore.updateNote({
-        profileId: props.profileId,
+        profileId: profileStore.currentProfile?.id || '',
         noteId: editingNote.value.id,
         ...form.value
       })
     } else {
       await profileStore.addNote({
-        profileId: props.profileId,
+        profileId: profileStore.currentProfile?.id || '',
         ...form.value
       })
     }
@@ -129,7 +127,7 @@ const deleteNote = async (noteId: string) => {
   if (confirm('Are you sure you want to delete this note?')) {
     try {
       await profileStore.deleteNote({
-        profileId: props.profileId,
+        profileId: profileStore.currentProfile?.id || '',
         noteId
       })
     } catch (error) {

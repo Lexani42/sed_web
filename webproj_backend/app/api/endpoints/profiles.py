@@ -94,11 +94,25 @@ def create_note(
     note: schemas.NoteCreate,
     db: Session = Depends(deps.get_db)
 ):
+    # Trim and validate input
+    key = note.key.strip()
+    value = note.value.strip()
+    
+    if not key or not value:
+        raise HTTPException(
+            status_code=400,
+            detail="Note key and value cannot be empty"
+        )
+    
     db_profile = db.query(models.Profile).filter(models.Profile.id == profile_id).first()
     if not db_profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    db_note = models.Note(**note.model_dump(), profile_id=profile_id)
+    db_note = models.Note(
+        key=key,
+        value=value,
+        profile_id=profile_id
+    )
     db.add(db_note)
     db.commit()
     db.refresh(db_note)
@@ -111,6 +125,16 @@ def update_note(
     note: schemas.NoteCreate,
     db: Session = Depends(deps.get_db)
 ):
+    # Trim and validate input
+    key = note.key.strip()
+    value = note.value.strip()
+    
+    if not key or not value:
+        raise HTTPException(
+            status_code=400,
+            detail="Note key and value cannot be empty"
+        )
+    
     db_note = db.query(models.Note).filter(
         models.Note.id == note_id,
         models.Note.profile_id == profile_id
@@ -118,8 +142,8 @@ def update_note(
     if not db_note:
         raise HTTPException(status_code=404, detail="Note not found")
     
-    for key, value in note.model_dump().items():
-        setattr(db_note, key, value)
+    db_note.key = key
+    db_note.value = value
     
     db.commit()
     db.refresh(db_note)
