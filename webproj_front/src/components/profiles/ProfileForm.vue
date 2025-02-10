@@ -87,7 +87,7 @@ const form = ref({
   age: props.profile?.age || null,
   source: props.profile?.source || '',
   telegram_tag: props.profile?.telegram_tag || '',
-  birth_date: props.profile?.birth_date || ''
+  birth_date: props.profile?.birth_date || '2000-01-01'
 })
 
 const handleSubmit = async () => {
