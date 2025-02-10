@@ -35,7 +35,7 @@ class ProfileBase(BaseModel):
     source: str
     telegram_tag: Optional[str] = None
     birth_date: Optional[date] = None
-    photo: Optional[str] = "avatar.jpg"
+    photo: Optional[str] = "/static/avatars/avatar.jpg"
     opener_id: Optional[int] = None
     story_id: Optional[int] = None
     answered_opener: Optional[bool] = False
