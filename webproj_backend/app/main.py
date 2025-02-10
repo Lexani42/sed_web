@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db_init import init_db
 from app.api.endpoints import dialogs_router, profiles_router, stories_router
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -26,6 +28,9 @@ app.add_middleware(
 app.include_router(dialogs_router, prefix=f"{settings.API_V1_STR}/openers", tags=["dialogs"])
 app.include_router(profiles_router, prefix=f"{settings.API_V1_STR}/profiles", tags=["profiles"])
 app.include_router(stories_router, prefix=f"{settings.API_V1_STR}/stories", tags=["stories"])
+
+# Add after app initialization
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 @app.get("/")
 async def root():

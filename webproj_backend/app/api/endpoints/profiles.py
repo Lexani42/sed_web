@@ -1,10 +1,22 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app import schemas, models
 from app.api import deps
+import shutil
+from pathlib import Path
 
 router = APIRouter()
+
+def ensure_avatar_dir():
+    avatar_dir = Path("app/static/avatars")
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Copy default avatar if it doesn't exist
+    default_avatar = avatar_dir / "avatar.jpg"
+    if not default_avatar.exists():
+        # You'll need to provide the default avatar.png file
+        raise FileNotFoundError("Default avatar.png not found. Please add it to the avatars directory.")
 
 @router.get("/", response_model=List[schemas.Profile])
 def get_profiles(db: Session = Depends(deps.get_db)):
@@ -165,3 +177,31 @@ def delete_note(
     db.delete(db_note)
     db.commit()
     return {"ok": True}
+
+@router.post("/{profile_id}/avatar", response_model=schemas.Profile)
+async def upload_avatar(
+    profile_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(deps.get_db)
+):
+    ensure_avatar_dir()
+    
+    db_profile = db.query(models.Profile).filter(models.Profile.id == profile_id).first()
+    if not db_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Generate unique filename
+    file_extension = file.filename.split('.')[-1]
+    avatar_name = f"avatar_{profile_id}.{file_extension}"
+    avatar_path = Path("app/static/avatars") / avatar_name
+    
+    # Save file
+    with avatar_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Update profile with relative URL path
+    db_profile.photo = f"/static/avatars/{avatar_name}"
+    db.commit()
+    db.refresh(db_profile)
+    
+    return db_profile

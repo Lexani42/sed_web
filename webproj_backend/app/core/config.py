@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "storydb"
     DATABASE_URL: Optional[str] = None
+    BACKEND_URL: str = "http://localhost:8000"  # Adjust this based on your setup
 
     @property
     def sync_database_url(self) -> str:

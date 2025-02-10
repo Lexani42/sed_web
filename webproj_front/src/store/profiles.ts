@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '../services/api'
+import profileService from '../services/profileService'
 
 interface Profile {
   id: string
@@ -193,6 +194,23 @@ export const useProfileStore = defineStore('profiles', {
         }
       } catch (err) {
         this.error = 'Failed to delete note'
+        throw err
+      }
+    },
+
+    async uploadAvatar(profileId: string, file: File) {
+      try {
+        const updatedProfile = await profileService.uploadAvatar(profileId, file)
+        if (this.currentProfile?.id === profileId) {
+          this.currentProfile = updatedProfile
+        }
+        // Update profile in the profiles list
+        const index = this.profiles.findIndex(p => p.id === profileId)
+        if (index !== -1) {
+          this.profiles[index] = updatedProfile
+        }
+      } catch (err) {
+        this.error = 'Failed to upload avatar'
         throw err
       }
     }

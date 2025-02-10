@@ -7,6 +7,14 @@ export interface Profile {
   source: string
   telegram_tag?: string
   birth_date?: string
+  photo: string
+  photo_url: string
+  opener_id?: string
+  story_id?: string
+  answered_opener: boolean
+  story_discussed: boolean
+  closed_for_meet: boolean
+  closed_for_sex: boolean
   hobbies: Hobby[]
   notes: Note[]
 }
@@ -30,10 +38,29 @@ export interface CreateProfilePayload {
   source: string
   telegram_tag?: string
   birth_date?: string
+  photo?: string
+  opener_id?: string
+  story_id?: string
+  answered_opener?: boolean
+  story_discussed?: boolean
+  closed_for_meet?: boolean
+  closed_for_sex?: boolean
 }
 
-export interface UpdateProfilePayload extends Partial<CreateProfilePayload> {
+export interface UpdateProfilePayload {
   id: string
+  name?: string
+  age?: number
+  source?: string
+  telegram_tag?: string
+  birth_date?: string
+  photo?: string
+  opener_id?: string
+  story_id?: string
+  answered_opener?: boolean
+  story_discussed?: boolean
+  closed_for_meet?: boolean
+  closed_for_sex?: boolean
 }
 
 class ProfileService {
@@ -90,6 +117,22 @@ class ProfileService {
 
   async deleteNote(profileId: string, noteId: string) {
     await api.delete(`/profiles/${profileId}/notes/${noteId}`)
+  }
+
+  async uploadAvatar(profileId: string, file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const response = await api.post<Profile>(
+        `/profiles/${profileId}/avatar`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }
+    )
+    return response.data
   }
 }
 

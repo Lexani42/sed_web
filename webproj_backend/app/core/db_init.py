@@ -3,8 +3,13 @@ from app.database import SessionLocal, Base, engine
 from app.models.dialog import Opener, ContinueOption
 from app.models.profile import Profile, Hobby, Note
 from app.models.story import Story, Language, Format, Content
+from pathlib import Path
 
 def init_db():
+    # Create avatars directory and copy default avatar
+    avatar_dir = Path("app/static/avatars")
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+    
     # Create all tables
     Base.metadata.create_all(bind=engine)
     
@@ -48,6 +53,13 @@ def init_db():
                 name="John Doe",
                 age=30,
                 source="example",
+                photo="avatar.jpg",
+                opener_id=1,  # Reference to the first opener
+                story_id=1,   # Reference to the welcome story
+                answered_opener=True,
+                story_discussed=True,
+                closed_for_meet=False,
+                closed_for_sex=False,
                 hobbies=[
                     Hobby(name="Reading"),
                     Hobby(name="Writing")
