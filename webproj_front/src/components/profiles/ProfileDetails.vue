@@ -69,7 +69,7 @@ const route = useRoute()
 const profileStore = useProfileStore()
 const profileId = route.params.id as string
 
-const { profile, loading, error } = storeToRefs(profileStore)
+const { currentProfile: profile, loading, error } = storeToRefs(profileStore)
 
 onMounted(async () => {
   await profileStore.fetchProfile(profileId)
