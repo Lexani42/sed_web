@@ -80,7 +80,12 @@ export const useDialogStore = defineStore('dialogs', {
         const response = await api.post(`/openers/${option.openerId}/options`, option)
         const opener = this.openers.find(o => o.id === option.openerId)
         if (opener) {
+          if (!opener.continueOptions) {
+            opener.continueOptions = []
+          }
           opener.continueOptions.push(response.data)
+        } else {
+          await this.fetchOpeners()
         }
         return response.data
       } catch (err) {
