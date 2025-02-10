@@ -29,8 +29,8 @@
           <select v-model="form.language" required>
             <option value="">Select language</option>
             <option value="en">English</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
+            <option value="ru">Russian</option>
+            <option value="ua">Ukrainian</option>
             <!-- Add more language options as needed -->
           </select>
         </div>
