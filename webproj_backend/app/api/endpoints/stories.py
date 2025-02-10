@@ -21,8 +21,6 @@ def get_story(story_id: int, db: Session = Depends(deps.get_db)):
 @router.post("/", response_model=schemas.Story)
 def create_story(story: schemas.StoryCreate, db: Session = Depends(deps.get_db)):
     # Create story
-    print(f"Creating story with title: {story.title}")
-    print(f"Story: {story}")
     db_story = models.Story(title=story.title)
     db.add(db_story)
     db.commit()
@@ -155,6 +153,7 @@ def delete_language(
     language_code: str,
     db: Session = Depends(deps.get_db)
 ):
+    # Find the language
     db_language = db.query(models.Language).filter(
         models.Language.story_id == story_id,
         models.Language.code == language_code
@@ -163,10 +162,24 @@ def delete_language(
     if not db_language:
         raise HTTPException(status_code=404, detail="Language not found")
     
+    # Delete the language
     db.delete(db_language)
     db.commit()
     
-    return {"ok": True}
+    # Check if this was the last language for this story
+    remaining_languages = db.query(models.Language).filter(
+        models.Language.story_id == story_id
+    ).count()
+    
+    if remaining_languages == 0:
+        # Delete the story if no languages left
+        db_story = db.query(models.Story).filter(models.Story.id == story_id).first()
+        if db_story:
+            db.delete(db_story)
+            db.commit()
+            return {"message": "Story deleted as it had no languages left"}
+    
+    return {"message": "Language deleted successfully"}
 
 @router.delete("/{story_id}/languages/{language_code}/formats/{format_id}")
 def delete_language_format(
