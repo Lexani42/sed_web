@@ -71,3 +71,6 @@ htmlcov/
 
 # Local development
 .local/ 
+
+# Avatars
+avatars/
