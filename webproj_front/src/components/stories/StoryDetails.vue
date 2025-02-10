@@ -2,9 +2,14 @@
   <div class="story-details" v-if="story">
     <div class="header">
       <h2>{{ story.title }}</h2>
-      <button @click="showAddLanguageForm = true" class="btn-primary">
-        Add Language
-      </button>
+      <div class="header-actions">
+        <button @click="showAddLanguageForm = true" class="btn-primary">
+          Add Language
+        </button>
+        <button @click="handleDeleteStory" class="btn-danger">
+          Delete Story
+        </button>
+      </div>
     </div>
 
     <div class="languages-section">
@@ -74,12 +79,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useStoryStore } from '../../store/stories'
 import AddLanguageForm from './AddLanguageForm.vue'
 
 const route = useRoute()
+const router = useRouter()
 const storyStore = useStoryStore()
 const { currentStory: story } = storeToRefs(storyStore)
 const showAddLanguageForm = ref(false)
@@ -190,6 +196,19 @@ const deleteContent = async (languageCode: string, format: string) => {
     }
   }
 }
+
+const handleDeleteStory = async () => {
+  if (!story.value) return
+  
+  if (confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
+    try {
+      await storyStore.deleteStory(story.value.id)
+      router.push('/stories') // Redirect to stories list after deletion
+    } catch (error) {
+      console.error('Failed to delete story:', error)
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -202,6 +221,11 @@ const deleteContent = async (languageCode: string, format: string) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .languages-grid {

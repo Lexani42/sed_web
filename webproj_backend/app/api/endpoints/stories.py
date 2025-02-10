@@ -21,6 +21,8 @@ def get_story(story_id: int, db: Session = Depends(deps.get_db)):
 @router.post("/", response_model=schemas.Story)
 def create_story(story: schemas.StoryCreate, db: Session = Depends(deps.get_db)):
     # Create story
+    print(f"Creating story with title: {story.title}")
+    print(f"Story: {story}")
     db_story = models.Story(title=story.title)
     db.add(db_story)
     db.commit()

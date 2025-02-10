@@ -71,15 +71,9 @@ export const useStoryStore = defineStore('stories', {
       try {
         const response = await api.post('/stories', {
           title: payload.title,
-          languages: [{
-            code: payload.language,
-            content: {
-              [payload.format]: payload.content
-            }
-          }],
-          formats: [{
-            type: payload.format
-          }]
+          content: payload.content,
+          language: payload.language,
+          format: payload.format
         })
         this.stories.push(response.data)
         return response.data
